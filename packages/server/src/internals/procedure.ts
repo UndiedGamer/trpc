@@ -7,6 +7,10 @@ import { MiddlewareFunction, middlewareMarker } from './middlewares';
 import { wrapCallSafe } from './wrapCallSafe';
 assertNotBrowser();
 
+export type ProcedureParserTransformer<TRaw, TParsed> = {
+  (input: TRaw): TParsed | Promise<TParsed>;
+};
+
 export type ProcedureParserZodEsque<T> = {
   parse: (input: unknown) => T;
 };
@@ -89,9 +93,9 @@ function getParseFn<T>(_parser: ProcedureParser<T>): ParseFn<T> {
 export class Procedure<TInputContext, TContext, TInput, TOutput> {
   private middlewares: Readonly<Array<MiddlewareFunction<any, any>>>;
   private resolver: ProcedureResolver<TContext, TInput, TOutput>;
-  public inputParser: ProcedureParser<TInput>;
+  public readonly inputParser: ProcedureParser<TInput>;
   private parseInputFn: ParseFn<TInput>;
-  public outputParser: ProcedureParser<TOutput> | undefined;
+  public readonly outputParser: ProcedureParser<TOutput> | undefined;
   private parseOutputFn: ParseFn<TOutput> | undefined;
 
   constructor(opts: ProcedureOptions<TContext, TInput, TOutput>) {
@@ -116,10 +120,13 @@ export class Procedure<TInputContext, TContext, TInput, TOutput> {
 
   private async parseOutput(rawOutput: unknown): Promise<TOutput> {
     try {
-      if (process.env.NODE_ENV === 'production' || !this.parseOutputFn) {
-        return rawOutput as TOutput;
+      if (
+        process.env.TRPC_SKIP_OUTPUT_VALIDATION !== 'true' &&
+        this.parseOutputFn
+      ) {
+        return await this.parseOutputFn(rawOutput);
       }
-      return await this.parseOutputFn(rawOutput);
+      return rawOutput as TOutput;
     } catch (cause) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
