@@ -34,7 +34,7 @@ export type ProcedureParser<T> =
 
 export type ProcedureResolver<TContext, TInput, TOutput> = (opts: {
   ctx: TContext;
-  input: TInput;
+  input: unknown extends TInput ? undefined : TInput;
   type: ProcedureType;
 }) => Promise<TOutput> | TOutput;
 
@@ -146,7 +146,11 @@ export class Procedure<TInputContext, TContext, TInput, TOutput> {
     const middlewaresWithResolver = this.middlewares.concat([
       async ({ ctx }: { ctx: TContext }) => {
         const input = await this.parseInput(opts.rawInput);
-        const output = await this.resolver({ ...opts, ctx, input });
+        const output = await this.resolver({
+          ...opts,
+          ctx,
+          input: input as any,
+        });
         const data = await this.parseOutput(output);
         return {
           marker: middlewareMarker,
@@ -230,11 +234,7 @@ export type CreateProcedureOptions<
 > = {
   input?: ProcedureParser<TInput>;
   output?: ProcedureParser<TOutput>;
-  resolve: ProcedureResolver<
-    TContext,
-    unknown extends TInput ? undefined : TInput,
-    TOutput
-  >;
+  resolve: ProcedureResolver<TContext, TInput, TOutput>;
 };
 
 export function createProcedure<TContext, TInput, TOutput>(

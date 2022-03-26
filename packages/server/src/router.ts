@@ -345,7 +345,7 @@ export class Router<
 
   public subscription(
     path: string,
-    procedure: CreateProcedureOptions<TContext, any, any>,
+    procedure: Omit<CreateProcedureOptions<TContext, any, any>, 'output'>,
   ) {
     const router = new Router<TContext, TContext, {}, {}, any, any>({
       subscriptions: safeObject({
