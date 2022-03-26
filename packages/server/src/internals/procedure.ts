@@ -136,7 +136,7 @@ export class Procedure<TInputContext, TContext, TInput, TOutput> {
   }
 
   /**
-   * Trigger middlewares in order, parse raw input & call resolver
+   * Trigger middlewares in order, parse raw input, call resolver, parse raw output
    * @internal
    */
   public async call(
@@ -223,29 +223,25 @@ export class Procedure<TInputContext, TContext, TInput, TOutput> {
   }
 }
 
-export type CreateProcedureWithInput<TContext, TInput, TOutput> = {
-  input: ProcedureParser<TInput>;
-  output?: ProcedureParser<TOutput>;
-  resolve: ProcedureResolver<TContext, TInput, TOutput>;
-};
-export type CreateProcedureWithoutInput<TContext, TOutput> = {
-  output?: ProcedureParser<TOutput>;
-  resolve: ProcedureResolver<TContext, undefined, TOutput>;
-};
-
 export type CreateProcedureOptions<
   TContext,
   TInput = undefined,
   TOutput = undefined,
-> =
-  | CreateProcedureWithInput<TContext, TInput, TOutput>
-  | CreateProcedureWithoutInput<TContext, TOutput>;
+> = {
+  input?: ProcedureParser<TInput>;
+  output?: ProcedureParser<TOutput>;
+  resolve: ProcedureResolver<
+    TContext,
+    unknown extends TInput ? undefined : TInput,
+    TOutput
+  >;
+};
 
 export function createProcedure<TContext, TInput, TOutput>(
   opts: CreateProcedureOptions<TContext, TInput, TOutput>,
 ): Procedure<unknown, TContext, TInput, TOutput> {
   const inputParser =
-    'input' in opts
+    'input' in opts && opts.input
       ? opts.input
       : (input: unknown) => {
           if (input != null) {
@@ -261,7 +257,7 @@ export function createProcedure<TContext, TInput, TOutput>(
     inputParser: inputParser as any,
     resolver: opts.resolve as any,
     middlewares: [],
-    outputParser: opts.output,
+    outputParser: opts.output as any,
   });
 }
 

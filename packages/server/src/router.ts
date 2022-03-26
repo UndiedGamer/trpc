@@ -6,8 +6,6 @@ import { MiddlewareFunction } from './internals/middlewares';
 import {
   createProcedure,
   CreateProcedureOptions,
-  CreateProcedureWithInput,
-  CreateProcedureWithoutInput,
   inferProcedureFromOptions,
   Procedure,
   ProcedureCallOptions,
@@ -275,20 +273,7 @@ export class Router<
 
   public query<TPath extends string, TInput, TOutput>(
     path: TPath,
-    procedure: CreateProcedureWithInput<TContext, TInput, TOutput>,
-  ): Router<
-    TInputContext,
-    TContext,
-    TQueries &
-      Record<TPath, inferProcedureFromOptions<TInputContext, typeof procedure>>,
-    TMutations,
-    TSubscriptions,
-    TErrorShape
-  >;
-
-  public query<TPath extends string, TOutput>(
-    path: TPath,
-    procedure: CreateProcedureWithoutInput<TContext, TOutput>,
+    procedure: CreateProcedureOptions<TContext, TInput, TOutput>,
   ): Router<
     TInputContext,
     TContext,
@@ -311,20 +296,7 @@ export class Router<
 
   public mutation<TPath extends string, TInput, TOutput>(
     path: TPath,
-    procedure: CreateProcedureWithInput<TContext, TInput, TOutput>,
-  ): Router<
-    TInputContext,
-    TContext,
-    TQueries,
-    TMutations &
-      Record<TPath, inferProcedureFromOptions<TInputContext, typeof procedure>>,
-    TSubscriptions,
-    TErrorShape
-  >;
-
-  public mutation<TPath extends string, TOutput>(
-    path: TPath,
-    procedure: CreateProcedureWithoutInput<TContext, TOutput>,
+    procedure: CreateProcedureOptions<TContext, TInput, TOutput>,
   ): Router<
     TInputContext,
     TContext,
@@ -358,28 +330,9 @@ export class Router<
   >(
     path: TPath,
     procedure: Omit<
-      CreateProcedureWithInput<TContext, TInput, TOutput>,
+      CreateProcedureOptions<TContext, TInput, TOutput>,
       'output'
     >,
-  ): Router<
-    TInputContext,
-    TContext,
-    TQueries,
-    TMutations,
-    TSubscriptions &
-      Record<TPath, inferProcedureFromOptions<TInputContext, typeof procedure>>,
-    TErrorShape
-  >;
-
-  /**
-   * @beta Might change without a major version bump
-   */
-  public subscription<
-    TPath extends string,
-    TOutput extends Subscription<unknown>,
-  >(
-    path: TPath,
-    procedure: Omit<CreateProcedureWithoutInput<TContext, TOutput>, 'output'>,
   ): Router<
     TInputContext,
     TContext,
