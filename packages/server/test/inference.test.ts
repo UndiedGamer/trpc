@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { expectTypeOf } from 'expect-type';
 import { z } from 'zod';
 import * as trpc from '../src';
@@ -32,7 +31,7 @@ test('infer query input & output', async () => {
       output: z.object({
         input: z.string(),
       }),
-      // @ts-ignore - ensuring types from "output" are expected
+      // @ts-expect-error - ensure type inferred from "output" is expected as resolve fn return type
       async resolve({ input }) {
         return { input2: input };
       },
@@ -92,7 +91,7 @@ test('infer mutation input & output', async () => {
       output: z.object({
         input: z.string(),
       }),
-      // @ts-ignore - ensuring types from "output" are expected
+      // @ts-expect-error - ensure type inferred from "output" is expected as resolve fn return type
       async resolve({ input }) {
         return { input2: input };
       },
